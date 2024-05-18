@@ -68,9 +68,8 @@ class FilterVC: UIViewController {
     }
     
     
-    func getFilterData()
-    {
-        if viewModel == nil{
+    func getFilterData() {
+        if viewModel == nil {
             let decoder = JSONDecoder()
             do {
                 let data = try decoder.decode(FilterResponse.self, from: jsonData)
@@ -81,23 +80,26 @@ class FilterVC: UIViewController {
                 self.brandNameList = viewModel!.masterBrandList
                 self.locationNameList = viewModel!.masterLocationList
                 viewModel!.selectedCompanies = viewModel!.masterCompanyList[0]
+                viewModel!.selectCompany(viewModel!.masterCompanyList[0])
                 viewModel!.updateFilter()
-                // Loop through filterData, brands, locations, etc. to access specific information
-              } catch {
-              print(error)
+            } catch {
+                print(error)
             }
-        }
-        else{
+        } else {
             self.companyNameList = viewModel!.masterCompanyList
             self.accountNameList = viewModel!.masterAccountList
             self.brandNameList = viewModel!.masterBrandList
             self.locationNameList = viewModel!.masterLocationList
             viewModel!.updateFilter()
         }
-        
+
+        // Update mainCategories based on categoryPriority
+        if let viewModel = viewModel {
+            self.mainCategories = viewModel.getOrderedCategories()
+        }
+
         self.catTableReload()
         self.subCatTableReload()
-       
     }
     
     func loadJSONFromBundle(with filename: String) throws -> Data {
@@ -396,30 +398,28 @@ extension FilterVC: UITableViewDelegate,UITableViewDataSource{
             switch self.selectedCategory.1{
                 
             case .mAccount:
-                if viewModel!.selectedAccounts.contains(accountNameList[indexPath.row]){
-                    viewModel!.selectedAccounts.remove(accountNameList[indexPath.row])
-                }else{
-                    viewModel!.selectedAccounts.insert(accountNameList[indexPath.row])
-                }
-               
+//                if viewModel!.selectedAccounts.contains(accountNameList[indexPath.row]){
+//                    viewModel!.selectedAccounts.remove(accountNameList[indexPath.row])
+//                }else{
+//                    viewModel!.selectedAccounts.insert(accountNameList[indexPath.row])
+//                }
+                viewModel!.selectAccount(accountNameList[indexPath.row])
             case .mBrand:
-                if viewModel!.selectedBrands.contains(brandNameList[indexPath.row]){
-                    viewModel!.selectedBrands.remove(brandNameList[indexPath.row])
-                }else{
-                    viewModel!.selectedBrands.insert(brandNameList[indexPath.row])
-                }
-                
-
-                
+//                if viewModel!.selectedBrands.contains(brandNameList[indexPath.row]){
+//                    viewModel!.selectedBrands.remove(brandNameList[indexPath.row])
+//                }else{
+//                    viewModel!.selectedBrands.insert(brandNameList[indexPath.row])
+//                }
+                viewModel!.selectBrand(brandNameList[indexPath.row])
             case .mLocation:
-                if viewModel!.selectedLocations.contains(locationNameList[indexPath.row]) {
-                    viewModel!.selectedLocations.remove(locationNameList[indexPath.row])
-                } else {
-                    viewModel!.selectedLocations.insert(locationNameList[indexPath.row])
-                }
-                
+//                if viewModel!.selectedLocations.contains(locationNameList[indexPath.row]) {
+//                    viewModel!.selectedLocations.remove(locationNameList[indexPath.row])
+//                } else {
+//                    viewModel!.selectedLocations.insert(locationNameList[indexPath.row])
+//                }
+                viewModel!.selectLocation(locationNameList[indexPath.row])
             case .mCompany:
-                viewModel!.selectedCompanies = self.companyNameList[indexPath.row]
+                viewModel!.selectCompany(companyNameList[indexPath.row])
                 viewModel!.updateListsForCompany()
             }
     

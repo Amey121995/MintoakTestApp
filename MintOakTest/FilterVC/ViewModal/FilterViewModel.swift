@@ -19,7 +19,7 @@ class FilterViewModel {
     var masterBrandList: [String] = []
     var masterLocationList: [String] = []
 
-    var categoryPriority: [FilterType] = []
+    var categoryPriority: [FilterType] = [.mCompany, .mAccount, .mBrand, .mLocation]
 
     init(filterResponse: FilterResponse?) {
         self.filterResponse = filterResponse
@@ -152,32 +152,26 @@ class FilterViewModel {
     // Method to update filters based on selection
     func updateFilter() {
         updateMasterListsBasedOnPriority()
-        // applyFilters()  // If you want to apply filters immediately
     }
 
     private func updateMasterListsBasedOnPriority() {
         categoryPriority.forEach { category in
             switch category {
             case .mCompany:
-                updateListsForCompany()
+                //updateListsForCompany()
+                break
             case .mAccount:
                 updateListsForAccount()
             case .mBrand:
                 updateListsForBrand()
             case .mLocation:
-                // No need to update for location as it's the last priority
+                updateListsForLocation()
                 break
             }
         }
-
-        // Remove duplicates and sort lists
-        selectedAccounts = Set(masterAccountList.sorted())
-        selectedBrands = Set(masterBrandList.sorted())
-        selectedLocations = Set(masterLocationList.sorted())
     }
 
     public func updateListsForCompany() {
-        
         masterAccountList = getAllAccounts()
         masterBrandList = getAllBrands()
         masterLocationList = getAllLocations()
@@ -209,18 +203,18 @@ class FilterViewModel {
                 }
             }
 
-            self.selectedAccounts = filteredAccountList.isEmpty ? Set(self.selectedAccounts) : Set(filteredAccountList)
-            self.selectedBrands = filteredBrandList.isEmpty ? Set(self.selectedBrands) : Set(filteredBrandList)
-            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
+            self.selectedAccounts =  Set(filteredAccountList)
+            self.selectedBrands = Set(filteredBrandList)
+            self.selectedLocations =  Set(filteredLocationList)
         }
     }
 
     private func updateListsForAccount() {
-        if !selectedAccounts.isEmpty {
-            var filteredBrandList = [String]()
-            var filteredLocationList = [String]()
+        var filteredBrandList = [String]()
+        var filteredLocationList = [String]()
 
-            filterResponse?.filterData?.forEach { data in
+        filterResponse?.filterData?.forEach { data in
+            if data.companyName == selectedCompanies {
                 data.hierarchy?.forEach { account in
                     if selectedAccounts.contains(account.accountNumber ?? "") {
                         account.brandNameList?.forEach { brand in
@@ -236,17 +230,17 @@ class FilterViewModel {
                     }
                 }
             }
-            
-            self.selectedBrands = filteredBrandList.isEmpty ? Set(self.selectedBrands) : Set(filteredBrandList)
-            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
         }
+
+        self.selectedBrands = self.selectedBrands.isEmpty ? Set(filteredBrandList) : self.selectedBrands
+        self.selectedLocations = self.selectedLocations.isEmpty ? Set(filteredLocationList) : self.selectedLocations
     }
 
     private func updateListsForBrand() {
-        if !selectedBrands.isEmpty {
-            var filteredLocationList = [String]()
+        var filteredLocationList = [String]()
 
-            filterResponse?.filterData?.forEach { data in
+        filterResponse?.filterData?.forEach { data in
+            if data.companyName == selectedCompanies {
                 data.hierarchy?.forEach { account in
                     account.brandNameList?.forEach { brand in
                         if selectedBrands.contains(brand.brandName ?? "") {
@@ -259,11 +253,38 @@ class FilterViewModel {
                     }
                 }
             }
-
-            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
         }
+
+        self.selectedLocations = Set(filteredLocationList)
     }
 
+    private func updateListsForLocation() {
+        var filteredAccountList = [String]()
+        var filteredBrandList = [String]()
+
+        filterResponse?.filterData?.forEach { data in
+            if data.companyName == selectedCompanies {
+                data.hierarchy?.forEach { account in
+                    account.brandNameList?.forEach { brand in
+                        brand.locationNameList?.forEach { location in
+                            if selectedLocations.contains(location.locationName ?? "") {
+                                if let accountNumber = account.accountNumber {
+                                    filteredAccountList.append(accountNumber)
+                                }
+                                if let brandName = brand.brandName {
+                                    filteredBrandList.append(brandName)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        self.selectedAccounts = Set(filteredAccountList)
+        self.selectedBrands = Set(filteredBrandList)
+    }
+    
     private func getAllAccounts() -> [String] {
         var accounts: [String] = []
         filterResponse?.filterData?.forEach { data in
@@ -310,5 +331,66 @@ class FilterViewModel {
             }
         }
         return Array(Set(locations)).sorted()
+    }
+    
+    func getOrderedCategories() -> [(String, FilterType)] {
+        var orderedCategories: [(String, FilterType)] = []
+        for category in categoryPriority {
+            switch category {
+            case .mCompany:
+                orderedCategories.append(("Company Name", .mCompany))
+            case .mAccount:
+                orderedCategories.append(("Account Number", .mAccount))
+            case .mBrand:
+                orderedCategories.append(("Brand", .mBrand))
+            case .mLocation:
+                orderedCategories.append(("Locations", .mLocation))
+            }
+        }
+        return orderedCategories
+    }
+
+    // Update selections and other lists based on selected category
+    func selectCompany(_ company: String) {
+        selectedCompanies = company
+        updateCategoryPriority(for: .mCompany)
+        updateListsForCompany()
+    }
+
+    func selectAccount(_ account: String) {
+        if selectedAccounts.contains(account) {
+            selectedAccounts.remove(account)
+        } else {
+            selectedAccounts.insert(account)
+            updateCategoryPriority(for: .mAccount)
+            updateListsForAccount()
+        }
+    }
+
+    func selectBrand(_ brand: String) {
+        if selectedBrands.contains(brand) {
+            selectedBrands.remove(brand)
+        } else {
+            selectedBrands.insert(brand)
+            updateCategoryPriority(for: .mBrand)
+            updateListsForBrand()
+        }
+    }
+
+    func selectLocation(_ location: String) {
+        if selectedLocations.contains(location) {
+            selectedLocations.remove(location)
+        } else {
+            selectedLocations.insert(location)
+            updateCategoryPriority(for: .mLocation)
+            updateListsForLocation()
+        }
+
+    }
+
+    private func updateCategoryPriority(for category: FilterType) {
+        if !categoryPriority.contains(category) {
+            categoryPriority.append(category)
+        }
     }
 }
