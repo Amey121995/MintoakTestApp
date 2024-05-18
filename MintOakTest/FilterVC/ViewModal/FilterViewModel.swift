@@ -7,284 +7,6 @@
 
 import Foundation
 
-//class FilterViewModel {
-//    var filterResponse: FilterResponse?
-//    var selectedAccounts = Set<String>()
-//    var selectedBrands = Set<String>()
-//    var selectedLocations = Set<String>()
-//    var selectedCompanies: String = ""
-//
-//    var masterCompanyList: [String] = []
-//    var masterAccountList: [String] = []
-//    var masterBrandList: [String] = []
-//    var masterLocationList: [String] = []
-//
-//    init(filterResponse: FilterResponse?) {
-//        self.filterResponse = filterResponse
-//        createMasterLists()
-//    }
-//
-//    // Method to clear all selections
-//    func clearSelections() {
-//        selectedAccounts.removeAll()
-//        selectedBrands.removeAll()
-//        selectedLocations.removeAll()
-//    }
-//
-//    // Method to apply filters and get the list of MID numbers
-//    func applyFilters() -> [String] {
-//        var midList = getAllMIDs()
-//        midList = filterBasedOnSelections(midList: midList)
-//        return midList
-//    }
-//
-//    private func filterBasedOnSelections(midList: [String]) -> [String] {
-//        return midList.filter { mid in
-//            let companyMatch = selectedCompanies.isEmpty || filterResponse?.filterData?.contains { data in
-//                data.companyName == selectedCompanies && data.hierarchy?.contains(where: { $0.brandNameList?.contains(where: { $0.locationNameList?.contains(where: { $0.merchantNumber?.contains(where: { $0.mid == mid }) ?? false }) ?? false }) ?? false }) ?? false
-//            } ?? false
-//
-//            let accountMatch = selectedAccounts.isEmpty || filterResponse?.filterData?.contains(where: { data in
-//                data.accountList?.contains { account in
-//                    selectedAccounts.contains(account) && data.hierarchy?.contains(where: { $0.brandNameList?.contains(where: { $0.locationNameList?.contains(where: { $0.merchantNumber?.contains(where: { $0.mid == mid }) ?? false }) ?? false }) ?? false }) ?? false
-//                } ?? false
-//            }) ?? false
-//
-//            let brandMatch = selectedBrands.isEmpty || filterResponse?.filterData?.contains(where: { data in
-//                data.brandList?.contains { brand in
-//                    selectedBrands.contains(brand) && data.hierarchy?.contains(where: { $0.brandNameList?.contains(where: { $0.locationNameList?.contains(where: { $0.merchantNumber?.contains(where: { $0.mid == mid }) ?? false }) ?? false }) ?? false }) ?? false
-//                } ?? false
-//            }) ?? false
-//
-//            let locationMatch = selectedLocations.isEmpty || filterResponse?.filterData?.contains(where: { data in
-//                data.locationList?.contains { location in
-//                    selectedLocations.contains(location) && data.hierarchy?.contains(where: { $0.brandNameList?.contains(where: { $0.locationNameList?.contains(where: { $0.merchantNumber?.contains(where: { $0.mid == mid }) ?? false }) ?? false }) ?? false }) ?? false
-//                } ?? false
-//            }) ?? false
-//
-//            return companyMatch && accountMatch && brandMatch && locationMatch
-//        }
-//    }
-//
-//    private func getAllMIDs() -> [String] {
-//        var allMIDs: [String] = []
-//
-//        filterResponse?.filterData?.forEach { data in
-//            data.hierarchy?.forEach { account in
-//                account.brandNameList?.forEach { brand in
-//                    brand.locationNameList?.forEach { location in
-//                        location.merchantNumber?.forEach { merchant in
-//                            if let mid = merchant.mid {
-//                                allMIDs.append(mid)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        return allMIDs
-//    }
-//
-//    // Method to create master lists
-//    private func createMasterLists() {
-//        guard let filterData = filterResponse?.filterData else { return }
-//
-//        masterCompanyList = Array(Set(filterData.compactMap { $0.companyName })).sorted()
-//        selectedCompanies = masterCompanyList.first ?? ""
-//
-//        masterAccountList = Array(Set(filterData.reduce([]) { result, data in
-//            var result = result
-//            result += data.accountList ?? []
-//            if let hierarchy = data.hierarchy {
-//                for account in hierarchy {
-//                    if let accountNumber = account.accountNumber {
-//                        result.append(accountNumber)
-//                    }
-//                }
-//            }
-//            return result
-//        })).sorted()
-//
-//        masterBrandList = Array(Set(filterData.reduce([]) { result, data in
-//            var result = result
-//            result += data.brandList ?? []
-//            if let hierarchy = data.hierarchy {
-//                for account in hierarchy {
-//                    if let brandNameList = account.brandNameList {
-//                        for brand in brandNameList {
-//                            if let brandName = brand.brandName {
-//                                result.append(brandName)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return result
-//        })).sorted()
-//
-//        masterLocationList = Array(Set(filterData.reduce([]) { result, data in
-//            var result = result
-//            result += data.locationList ?? []
-//            if let hierarchy = data.hierarchy {
-//                for account in hierarchy {
-//                    if let brandNameList = account.brandNameList {
-//                        for brand in brandNameList {
-//                            if let locationNameList = brand.locationNameList {
-//                                for location in locationNameList {
-//                                    if let locationName = location.locationName {
-//                                        result.append(locationName)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return result
-//        })).sorted()
-//    }
-//
-//    // Method to update filters based on selection
-//    func updateFilter() {
-//        updateMasterListsBasedOnSelection()
-//        applyFilters()
-//    }
-//
-//    private func updateMasterListsBasedOnSelection() {
-//        masterAccountList = getAllAccounts()
-//        masterBrandList = getAllBrands()
-//        masterLocationList = getAllLocations()
-//
-//        // Apply selected company filter
-//        if !selectedCompanies.isEmpty {
-//            var filteredAccountList = [String]()
-//            var filteredBrandList = [String]()
-//            var filteredLocationList = [String]()
-//
-//            filterResponse?.filterData?.forEach { data in
-//                if selectedCompanies.contains(data.companyName ?? "") {
-//                    if let accountList = data.accountList {
-//                        filteredAccountList.append(contentsOf: accountList)
-//                    }
-//                    if let brandList = data.brandList {
-//                        filteredBrandList.append(contentsOf: brandList)
-//                    }
-//                    if let locationList = data.locationList {
-//                        filteredLocationList.append(contentsOf: locationList)
-//                    }
-//                }
-//            }
-//            
-//            masterAccountList = filteredAccountList
-//            masterBrandList = filteredBrandList
-//            masterLocationList = filteredLocationList
-//            
-//           
-//        }
-//
-//        // Apply selected account filter
-//        if !selectedAccounts.isEmpty {
-//            var filteredBrandList = [String]()
-//            var filteredLocationList = [String]()
-//
-//            filterResponse?.filterData?.forEach { data in
-//                if let accountList = data.accountList, accountList.contains(where: selectedAccounts.contains) {
-//                    if let brandList = data.brandList {
-//                        filteredBrandList.append(contentsOf: brandList)
-//                    }
-//                    if let locationList = data.locationList {
-//                        filteredLocationList.append(contentsOf: locationList)
-//                    }
-//                }
-//            }
-//
-//            masterBrandList = masterBrandList.filter { filteredBrandList.contains($0) }
-//            masterLocationList = masterLocationList.filter { filteredLocationList.contains($0) }
-//        }
-//
-//        // Apply selected brand filter
-//        if !selectedBrands.isEmpty {
-//            var filteredAccountList = [String]()
-//            var filteredLocationList = [String]()
-//
-//            filterResponse?.filterData?.forEach { data in
-//                if let brandList = data.brandList, brandList.contains(where: selectedBrands.contains) {
-//                    if let accountList = data.accountList {
-//                        filteredAccountList.append(contentsOf: accountList)
-//                    }
-//                    if let locationList = data.locationList {
-//                        filteredLocationList.append(contentsOf: locationList)
-//                    }
-//                }
-//            }
-//
-//            masterLocationList = masterLocationList.filter { filteredLocationList.contains($0) }
-//        }
-//
-////        // Apply selected location filter
-////        if !selectedLocations.isEmpty {
-////            var filteredAccountList = [String]()
-////            var filteredBrandList = [String]()
-////
-////            filterResponse?.filterData?.forEach { data in
-////                if let locationList = data.locationList, locationList.contains(where: selectedLocations.contains) {
-////                    if let accountList = data.accountList {
-////                        filteredAccountList.append(contentsOf: accountList)
-////                    }
-////                    if let brandList = data.brandList {
-////                        filteredBrandList.append(contentsOf: brandList)
-////                    }
-////                }
-////            }
-////
-////            masterAccountList = masterAccountList.filter { filteredAccountList.contains($0) }
-////            masterBrandList = masterBrandList.filter { filteredBrandList.contains($0) }
-////        }
-//
-//        // Remove duplicates and sort lists
-//        masterAccountList = Array(Set(masterAccountList)).sorted()
-//        masterBrandList = Array(Set(masterBrandList)).sorted()
-//        masterLocationList = Array(Set(masterLocationList)).sorted()
-//    }
-//
-//
-//
-//
-//    private func getAllAccounts() -> [String] {
-//        var accounts: [String] = []
-//        filterResponse?.filterData?.forEach { data in
-//            if let accountList = data.accountList {
-//                accounts.append(contentsOf: accountList)
-//            }
-//        }
-//        return Array(Set(accounts)).sorted()
-//    }
-//
-//    private func getAllBrands() -> [String] {
-//        var brands: [String] = []
-//        filterResponse?.filterData?.forEach { data in
-//            if let brandList = data.brandList {
-//                brands.append(contentsOf: brandList)
-//            }
-//        }
-//        return Array(Set(brands)).sorted()
-//    }
-//
-//    private func getAllLocations() -> [String] {
-//        var locations: [String] = []
-//        filterResponse?.filterData?.forEach { data in
-//            if let locationList = data.locationList {
-//                locations.append(contentsOf: locationList)
-//            }
-//        }
-//        return Array(Set(locations)).sorted()
-//    }
-//}
-
-
-import Foundation
-
 class FilterViewModel {
     var filterResponse: FilterResponse?
     var selectedAccounts = Set<String>()
@@ -297,6 +19,8 @@ class FilterViewModel {
     var masterBrandList: [String] = []
     var masterLocationList: [String] = []
 
+    var categoryPriority: [FilterType] = []
+
     init(filterResponse: FilterResponse?) {
         self.filterResponse = filterResponse
         createMasterLists()
@@ -308,6 +32,7 @@ class FilterViewModel {
         selectedBrands.removeAll()
         selectedLocations.removeAll()
         selectedCompanies = masterCompanyList[0]
+        categoryPriority.removeAll()
     }
 
     // Method to apply filters and get the list of MID numbers
@@ -392,7 +117,6 @@ class FilterViewModel {
         } ?? false
     }
 
-
     private func getAllMIDs() -> [String] {
         var allMIDs: [String] = []
 
@@ -418,8 +142,8 @@ class FilterViewModel {
         guard let filterData = filterResponse?.filterData else { return }
 
         masterCompanyList = Array(Set(filterData.compactMap { $0.companyName })).sorted()
-        selectedCompanies = masterCompanyList.first ?? ""
-
+        selectedCompanies = selectedCompanies.isEmpty ? masterCompanyList[0] : selectedCompanies
+        
         masterAccountList = getAllAccounts()
         masterBrandList = getAllBrands()
         masterLocationList = getAllLocations()
@@ -427,11 +151,33 @@ class FilterViewModel {
 
     // Method to update filters based on selection
     func updateFilter() {
-        updateMasterListsBasedOnSelection()
-//        applyFilters()
+        updateMasterListsBasedOnPriority()
+        // applyFilters()  // If you want to apply filters immediately
     }
 
-    private func updateMasterListsBasedOnSelection() {
+    private func updateMasterListsBasedOnPriority() {
+        categoryPriority.forEach { category in
+            switch category {
+            case .mCompany:
+                updateListsForCompany()
+            case .mAccount:
+                updateListsForAccount()
+            case .mBrand:
+                updateListsForBrand()
+            case .mLocation:
+                // No need to update for location as it's the last priority
+                break
+            }
+        }
+
+        // Remove duplicates and sort lists
+        selectedAccounts = Set(masterAccountList.sorted())
+        selectedBrands = Set(masterBrandList.sorted())
+        selectedLocations = Set(masterLocationList.sorted())
+    }
+
+    public func updateListsForCompany() {
+        
         masterAccountList = getAllAccounts()
         masterBrandList = getAllBrands()
         masterLocationList = getAllLocations()
@@ -463,11 +209,13 @@ class FilterViewModel {
                 }
             }
 
-            masterAccountList = filteredAccountList.isEmpty ? masterAccountList: filteredAccountList
-            masterBrandList = filteredBrandList.isEmpty ? masterBrandList: filteredBrandList
-            masterLocationList = filteredLocationList.isEmpty ? masterLocationList: filteredLocationList
+            self.selectedAccounts = filteredAccountList.isEmpty ? Set(self.selectedAccounts) : Set(filteredAccountList)
+            self.selectedBrands = filteredBrandList.isEmpty ? Set(self.selectedBrands) : Set(filteredBrandList)
+            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
         }
-            
+    }
+
+    private func updateListsForAccount() {
         if !selectedAccounts.isEmpty {
             var filteredBrandList = [String]()
             var filteredLocationList = [String]()
@@ -488,11 +236,13 @@ class FilterViewModel {
                     }
                 }
             }
-
-            masterBrandList = filteredBrandList.isEmpty ? masterBrandList: filteredBrandList
-            masterLocationList = filteredLocationList.isEmpty ? masterLocationList: filteredLocationList
-        }
             
+            self.selectedBrands = filteredBrandList.isEmpty ? Set(self.selectedBrands) : Set(filteredBrandList)
+            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
+        }
+    }
+
+    private func updateListsForBrand() {
         if !selectedBrands.isEmpty {
             var filteredLocationList = [String]()
 
@@ -510,21 +260,18 @@ class FilterViewModel {
                 }
             }
 
-            masterLocationList = filteredLocationList.isEmpty ? masterLocationList: filteredLocationList
+            self.selectedLocations = filteredLocationList.isEmpty ? Set(self.selectedLocations) : Set(filteredLocationList)
         }
-
-        // Remove duplicates and sort lists
-        masterAccountList = Array(Set(masterAccountList)).sorted()
-        masterBrandList = Array(Set(masterBrandList)).sorted()
-        masterLocationList = Array(Set(masterLocationList)).sorted()
     }
 
     private func getAllAccounts() -> [String] {
         var accounts: [String] = []
         filterResponse?.filterData?.forEach { data in
-            data.hierarchy?.forEach { account in
-                if let accountNumber = account.accountNumber {
-                    accounts.append(accountNumber)
+            if data.companyName == selectedCompanies {
+                data.hierarchy?.forEach { account in
+                    if let accountNumber = account.accountNumber {
+                        accounts.append(accountNumber)
+                    }
                 }
             }
         }
@@ -534,10 +281,12 @@ class FilterViewModel {
     private func getAllBrands() -> [String] {
         var brands: [String] = []
         filterResponse?.filterData?.forEach { data in
-            data.hierarchy?.forEach { account in
-                account.brandNameList?.forEach { brand in
-                    if let brandName = brand.brandName {
-                        brands.append(brandName)
+            if data.companyName == selectedCompanies {
+                data.hierarchy?.forEach { account in
+                    account.brandNameList?.forEach { brand in
+                        if let brandName = brand.brandName {
+                            brands.append(brandName)
+                        }
                     }
                 }
             }
@@ -548,11 +297,13 @@ class FilterViewModel {
     private func getAllLocations() -> [String] {
         var locations: [String] = []
         filterResponse?.filterData?.forEach { data in
-            data.hierarchy?.forEach { account in
-                account.brandNameList?.forEach { brand in
-                    brand.locationNameList?.forEach { location in
-                        if let locationName = location.locationName {
-                            locations.append(locationName)
+            if data.companyName == selectedCompanies {
+                data.hierarchy?.forEach { account in
+                    account.brandNameList?.forEach { brand in
+                        brand.locationNameList?.forEach { location in
+                            if let locationName = location.locationName {
+                                locations.append(locationName)
+                            }
                         }
                     }
                 }

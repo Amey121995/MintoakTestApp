@@ -92,7 +92,6 @@ class FilterVC: UIViewController {
             self.accountNameList = viewModel!.masterAccountList
             self.brandNameList = viewModel!.masterBrandList
             self.locationNameList = viewModel!.masterLocationList
-            viewModel!.selectedCompanies = viewModel!.masterCompanyList[0]
             viewModel!.updateFilter()
         }
         
@@ -290,13 +289,13 @@ extension FilterVC: UITableViewDelegate,UITableViewDataSource{
             {
                 
             case .mAccount:
-                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(self.accountNameList.count))"
+                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(viewModel!.selectedAccounts.count))"
             case .mBrand:
-                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(self.brandNameList.count))"
+                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(viewModel!.selectedBrands.count))"
             case .mLocation:
-                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(self.locationNameList.count))"
+                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(viewModel!.selectedLocations.count))"
             case .mCompany:
-                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0) (\(self.companyNameList.count))"
+                cell.categoryTitle.text = "\(mainCategories[indexPath.row].0)"
             }
             
             
@@ -421,10 +420,9 @@ extension FilterVC: UITableViewDelegate,UITableViewDataSource{
                 
             case .mCompany:
                 viewModel!.selectedCompanies = self.companyNameList[indexPath.row]
+                viewModel!.updateListsForCompany()
             }
-            
-            viewModel!.updateFilter()
-        
+    
         }
         
         self.companyNameList = viewModel!.masterCompanyList
